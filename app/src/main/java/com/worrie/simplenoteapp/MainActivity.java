@@ -22,6 +22,8 @@ import com.worrie.simplenoteapp.gemini.GeminiResponse;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,11 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isDarkMode;
 
-    private static final String GEMINI_API_KEY = "AIzaSyCakLlkJwMtxvk6f_51JD5MIntRH0TvhnY";
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_API_KEY.trim();
+    private static final String GEMINI_API_KEY = BuildConfig.GEMINI_API_KEY;
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_API_KEY.trim();
 
     private static final String CAPTION_API_BASE_URL = "https://youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com/download-all/";
-    private static final String CAPTION_API_KEY = "aaa66313ebmsh4380ec2656bd241p16c845jsn29eb3d6608e3";
+    private static final String CAPTION_API_KEY = BuildConfig.CAPTION_API_KEY;
     private static final String CAPTION_API_HOST = "youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com";
 
     @Override
@@ -176,107 +178,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void summarizeVideo(String url) {
-        String videoId = extractVideoId(url);
-        if (videoId == null) {
-            Toast.makeText(this, "Invalid YouTube URL", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Toast.makeText(this, "Fetching Captions...", Toast.LENGTH_SHORT).show();
-        fetchCaptionsViaApi(videoId, new TranscriptCallback() {
-            @Override
-            public void onTranscriptFetched(String transcript) {
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Generating Notes with AI...", Toast.LENGTH_SHORT).show());
-                sendTranscriptToGemini(transcript);
-            }
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> showErrorDialog("Caption Error", error));
-            }
-        });
+        Toast.makeText(this, "Generating AI Notes...", Toast.LENGTH_SHORT).show();
+        callSummarizeProxy(url);
     }
 
-    private void fetchCaptionsViaApi(String videoId, TranscriptCallback callback) {
-        OkHttpClient client = new OkHttpClient();
-        String url = CAPTION_API_BASE_URL + videoId + "?format_subtitle=srt&format_answer=json";
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("x-rapidapi-key", CAPTION_API_KEY)
-                .addHeader("x-rapidapi-host", CAPTION_API_HOST)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                callback.onError("Network Failed: " + e.getMessage());
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    String errorBody = response.body() != null ? response.body().string() : "";
-                    String msg = "API Error: " + response.code();
-                    if (response.code() == 403) msg += "\n\nAccess Forbidden (403). Invalid API Key.";
-                    else if (response.code() == 404) msg += "\n\nVideo not found.";
-                    if (!errorBody.isEmpty()) msg += "\n\nServer Message:\n" + errorBody;
-                    callback.onError(msg);
-                    return;
-                }
-                String responseBody = response.body().string();
-                if (responseBody != null && !responseBody.isEmpty()) callback.onTranscriptFetched(responseBody);
-                else callback.onError("No captions found.");
-            }
-        });
-    }
-
-    private void sendTranscriptToGemini(String transcript) {
-        String prompt = "You are a professional academic note-taker. Convert the following transcript into clean, structured study notes.\n\nSTRICT RULES:\n1. Use ALL CAPS for headings.\n2. Use dashes (-) for bullet points.\n3. No markdown, no asterisks, no bold/italics.\n4. No intro, no outro, no echoing instructions.\n5. Use double line breaks between sections.\n\nREQUIRED FORMAT:\nYour entire response must follow this exact structure:\n<thought>\n[Your internal reasoning]\n</thought>\n<final>\n[The clean notes here]\n</final>\n\nEXAMPLE:\n<thought>I will summarize the React video focusing on hooks.</thought>\n<final>\nREACT HOOKS\n- useState manages state.\n- useEffect handles side effects.\n</final>\n\nTranscript:\n" + transcript;
-        GeminiRequest geminiRequest = new GeminiRequest(prompt);
-        Gson gson = new Gson();
-        String jsonBody = gson.toJson(geminiRequest);
-
+    private void callSummarizeProxy(String url) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build();
 
+        // REPLACE THIS URL with your actual Vercel deployment URL
+        String proxyUrl = "https://your-project-name.vercel.app/api/summarize";
+        
+        Gson gson = new Gson();
+        Map<String, String> bodyMap = new HashMap<>();
+        bodyMap.put("url", url);
+        String jsonBody = gson.toJson(bodyMap);
+
         RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder().url(GEMINI_URL).post(body).build();
+        Request request = new Request.Builder().url(proxyUrl).post(body).build();
 
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> showErrorDialog("Connection Failed", e.getMessage()));
+                runOnUiThread(() -> showErrorDialog("Server Error", "Could not connect to proxy server: " + e.getMessage()));
             }
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responseBody = response.body() != null ? response.body().string() : "";
                 if (response.isSuccessful()) {
                     try {
-                        GeminiResponse geminiResponse = gson.fromJson(responseBody, GeminiResponse.class);
-                        if (geminiResponse.getCandidates() != null && !geminiResponse.getCandidates().isEmpty()) {
-                            String summary = geminiResponse.getCandidates().get(0).getContent().getParts().get(0).getText();
-                            String cleanSummary = summary;
-                            Pattern finalPattern = Pattern.compile("<final\\s*>(.*?)</final\\s*>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-                            Matcher finalMatcher = finalPattern.matcher(summary);
-                            if (finalMatcher.find()) {
-                                cleanSummary = finalMatcher.group(1).trim();
-                            } else {
-                                cleanSummary = summary.replace("*", "").trim();
-                            }
+                        Map<String, String> result = gson.fromJson(responseBody, new TypeToken<Map<String, String>>(){}.getType());
+                        String summary = result.get("summary");
+                        if (summary != null && !summary.isEmpty()) {
                             runOnUiThread(() -> {
-                                notes.add(new Note("Video Summary", cleanSummary));
+                                notes.add(new Note("Video Summary", summary));
                                 noteAdapter.notifyDataSetChanged();
                                 saveNotes(getApplicationContext());
                                 Toast.makeText(MainActivity.this, "Notes Added!", Toast.LENGTH_SHORT).show();
                             });
                         } else {
-                            runOnUiThread(() -> showErrorDialog("AI Error", responseBody));
+                            runOnUiThread(() -> showErrorDialog("AI Error", "No summary returned from server."));
                         }
                     } catch (Exception e) {
                         runOnUiThread(() -> showErrorDialog("Parsing Error", e.getMessage()));
                     }
                 } else {
-                    runOnUiThread(() -> showErrorDialog("AI Error " + response.code(), responseBody));
+                    runOnUiThread(() -> showErrorDialog("Server Error " + response.code(), responseBody));
                 }
             }
         });
