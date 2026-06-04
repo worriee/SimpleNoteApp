@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     if (captionApiBaseUrl.endsWith("/")) {
       captionApiBaseUrl = captionApiBaseUrl.slice(0, -1);
     }
-    const captionApiUrl = `${captionApiBaseUrl}${videoId}?format_subtitle=srt&format_answer=json`;
+    const captionApiUrl = `${captionApiBaseUrl}/${videoId}?format_subtitle=srt&format_answer=json`;
 
     const captionResponse = await fetch(captionApiUrl, {
       method: "GET",
