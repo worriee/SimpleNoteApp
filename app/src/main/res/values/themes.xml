@@ -1,0 +1,25 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SimpleNoteApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+    </style>
+
+    <style name="Theme.SimpleNoteApp" parent="Base.Theme.SimpleNoteApp" />
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.SimpleNoteApp</item>
+    </style>
+
+    <!-- ADDED: Custom Dialog Theme for Day Mode -->
+    <style name="App.Dialog.Alert" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="colorPrimary">@android:color/black</item>
+    </style>
+
+</resources>

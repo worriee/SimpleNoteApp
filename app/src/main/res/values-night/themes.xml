@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SimpleNoteApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+    </style>
+
+    <!-- ADDED: Custom Dialog Theme for Night Mode -->
+    <style name="App.Dialog.Alert" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="colorPrimary">@android:color/white</item>
+    </style>
+</resources>
