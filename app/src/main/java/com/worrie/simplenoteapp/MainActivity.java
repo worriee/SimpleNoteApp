@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         // REPLACE THIS URL with your actual Vercel deployment URL
-        String proxyUrl = "https://your-project-name.vercel.app/api/summarize";
+        String proxyUrl = "https://simple-note-app-orpin.vercel.app/api/summarize";
         
         Gson gson = new Gson();
         Map<String, String> bodyMap = new HashMap<>();
