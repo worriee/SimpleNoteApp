@@ -2,15 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-import java.util.Properties
-import java.io.FileInputStream
-
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-
 android {
     namespace = "com.worrie.simplenoteapp"
     compileSdk = 34
@@ -20,16 +11,9 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 2
-        versionName = "1.4"
+        versionName = "1.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("gemini.api.key") ?: ""}\"")
-        buildConfigField("String", "CAPTION_API_KEY", "\"${localProperties.getProperty("caption.api.key") ?: ""}\"")
-    }
-
-    buildFeatures {
-        buildConfig = true
     }
 
     buildTypes {

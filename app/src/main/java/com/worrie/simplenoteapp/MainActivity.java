@@ -17,8 +17,6 @@ import androidx.core.splashscreen.SplashScreen;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.worrie.simplenoteapp.gemini.GeminiRequest;
-import com.worrie.simplenoteapp.gemini.GeminiResponse;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -56,12 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isDarkMode;
 
-    private static final String GEMINI_API_KEY = BuildConfig.GEMINI_API_KEY;
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_API_KEY.trim();
-
-    private static final String CAPTION_API_BASE_URL = "https://youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com/download-all/";
-    private static final String CAPTION_API_KEY = BuildConfig.CAPTION_API_KEY;
-    private static final String CAPTION_API_HOST = "youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
