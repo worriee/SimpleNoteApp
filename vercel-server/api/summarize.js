@@ -24,6 +24,7 @@ export default async function handler(req, res) {
     const captionApiKey = process.env.CAPTION_API_KEY;
     let captionApiBaseUrl = process.env.CAPTION_API_URL;
 
+    // Ensure no trailing slash before appending the key
     if (captionApiBaseUrl.endsWith("/")) {
       captionApiBaseUrl = captionApiBaseUrl.slice(0, -1);
     }
@@ -57,7 +58,7 @@ export default async function handler(req, res) {
     }
     const geminiUrl = `${geminiBaseUrl}${geminiApiKey}`;
 
-    const prompt = `You are a professional academic note-taker. Convert the following transcript into clean, structured study notes.\n\nSTRICT RULES:\n1. Use ALL CAPS for headings.\n2. Use dashes (-) for bullet points.\n3. No markdown, no asterisks, no bold/italics.\n4. No intro, no outro, no echoing instructions.\n5. Use double line breaks between sections.\n\nREQUIRED FORMAT:\nYour entire response must follow this exact structure:\n<thought>\n[Your internal reasoning]\n</thought>\n<final>\n[The clean notes here]\n</final>\n\nEXAMPLE:\n<thought>I will summarize the React video focusing on hooks.</thought>\n<final>\nREACT HOOKS\n- useState manages state.\n- useEffect handles side effects.\n</final>\n\nTranscript:\n${transcript}`;
+    const prompt = `You are a professional academic note-taker. Convert the following transcript into clean, structured study notes.\n\nSTRICT RULES:\n1. Use ALL CAPS for headings.\n2. Use dashes (-) for bullet points.\n3. No markdown, no asterisks, no bold/italics.\n4. No intro, no outro, no echoing instructions.\n5. Use double line breaks between sections.\n\nREQUIRED FORMAT:\nYour entire response must follow this exact structure:\n<thought>\n[Your internal reasoning]\n</thought>\n<final>\n[The clean notes here]\n</final>\n\nCRITICAL: The final notes must be strictly contained within the <final> tags. Do not include the <thought> section or any other text outside the <final> tags and the <final> tags itself in your final answer.\n\nEXAMPLE:\n<thought>I will summarize the React video focusing on hooks.</thought>\n<final>\nREACT HOOKS\n- useState manages state.\n- useEffect handles side effects.\n</final>\n\nTranscript:\n${transcript}`;
 
     const geminiResponse = await fetch(geminiUrl, {
       method: "POST",
